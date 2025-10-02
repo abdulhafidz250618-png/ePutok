@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Usulan Pupuk Bersubsidi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Library untuk membaca Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f8f0 0%, #e0f0e0 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #4CAF50;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #4CAF50;
+        }
+        
+        h1 {
+            color: #2c5f2d;
+            margin: 0;
+            font-size: 2.2rem;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        
+        .import-section {
+            background-color: #e3f2fd;
+            border: 1px solid #2196F3;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .import-title {
+            color: #1976d2;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .import-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .import-option {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px dashed #2196F3;
+            text-align: center;
+        }
+        
+        .import-option i {
+            font-size: 2rem;
+            color: #2196F3;
+            margin-bottom: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .file-label:hover {
+            background-color: #1976d2;
+        }
+        
+        .template-download {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        
+        .template-download:hover {
+            background-color: #3d8b40;
+        }
+        
+        .preview-section {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .preview-table th, .preview-table td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .preview-table th {
+            background-color: #f5f5f5;
+        }
+        
+        .import-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .import-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .import-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .cancel-btn {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .status-success {
+            background-color: #e8f5e9;
+            border: 1px solid #4CAF50;
+            color: #2e7d32;
+        }
+        
+        .status-error {
+            background-color: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+        
+        /* CSS lainnya tetap sama */
+        .user-type-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .user-btn {
+            padding: 15px 30px;
+            background-color: #e8f5e9;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-btn.active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .user-btn:hover {
+            background-color: #3d8b40;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .login-section {
+            background-color: #f8fff8;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #4CAF50;
+            margin-bottom: 30px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .login-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background-color: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5f2d;
+        }
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        
+        select:focus, input:focus, textarea:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+        }
+        
+        .data-display {
+            background-color: #f8fff8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .data-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        
+        .data-label {
+            font-weight: 600;
+            width: 150px;
+            color: #2c5f2d;
+        }
+        
+        .data-value {
+            flex: 1;
+            color: #34495e;
+        }
+        
+        .mt-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .mt-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c5f2d;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pupuk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .pupuk-item {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+            transition: transform 0.3s;
+        }
+        
+        .pupuk-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .pupuk-label {
+            font-weight: 600;
+            color: #2c5f2d;
+            margin-bottom: 5px;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #4CAF50 0%, #3d8b40 100%);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+            font-weight: 600;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .info-box {
+            background-color: #e8f5e9;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .info-title {
+            font-weight: 600;
+            color: #2c5f2d;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .admin-btn {
+            padding: 10px 15px;
+            background-color: #2c5f2d;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .admin-btn:hover {
+            background-color: #235023;
+            transform: translateY(-2px);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .summary-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .summary-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2c5f2d;
+            margin-bottom: 15px;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .summary-item {
+            background-color: #f8fff8;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .summary-item:hover {
+            transform: translateY(-3px);
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c5f2d;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .user-info {
+            background: linear-gradient(135deg, #e8f5e9 0%, #d4edda 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-approved {
+            background-color: #d1edff;
+            color: #004085;
+        }
+        
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .data-row {
+                flex-direction: column;
+            }
+            
+            .data-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .form-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .admin-controls {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-type-selector {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .import-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-tractor logo-icon"></i>
+                <div>
+                    <h1>Sistem Usulan Pupuk Bersubsidi</h1>
+                    <div class="subtitle">Import Data Master dari Excel/CSV</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Import Data -->
+        <div class="import-section">
+            <div class="import-title">
+                <i class="fas fa-file-import"></i>
+                Import Data Master Petani
+            </div>
+            <p>Anda dapat mengimpor data petani dari file Excel (.xlsx, .xls) atau CSV.</p>
+            
+            <div class="import-options">
+                <div class="import-option">
+                    <i class="fas fa-file-excel"></i>
+                    <h3>Import dari Excel</h3>
+                    <p>Upload file Excel dengan format yang sesuai</p>
+                    <input type="file" id="excelFile" class="file-input" accept=".xlsx, .xls">
+                    <label for="excelFile" class="file-label">
+                        <i class="fas fa-upload"></i> Pilih File Excel
+                    </label>
+                </div>
+                
+                <div class="import-option">
+                    <i class="fas fa-file-csv"></i>
+                    <h3>Import dari CSV</h3>
+                    <p>Upload file CSV dengan format yang sesuai</p>
+                    <input type="file" id="csvFile" class="file-input" accept=".csv">
+                    <label for="csvFile" class="file-label">
+                        <i class="fas fa-upload"></i> Pilih File CSV
+                    </label>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0;">
+                <a href="#" class="template-download" id="downloadTemplate">
+                    <i class="fas fa-download"></i> Download Template Excel/CSV
+                </a>
+            </div>
+            
+            <div class="preview-section" id="previewSection">
+                <h4>Pratinjau Data:</h4>
+                <div class="preview-table-container" id="previewTable"></div>
+                <div class="import-actions">
+                    <button class="import-btn" id="confirmImport" disabled>
+                        <i class="fas fa-check"></i> Konfirmasi Import
+                    </button>
+                    <button class="cancel-btn" id="cancelImport">
+                        <i class="fas fa-times"></i> Batal
+                    </button>
+                </div>
+            </div>
+            
+            <div class="status-message" id="importStatus"></div>
+        </div>
+        
+        <!-- User Type Selector -->
+        <div class="user-type-selector">
+            <div class="user-btn active" data-user-type="petani">
+                <i class="fas fa-user"></i>
+                Mode Petani
+            </div>
+            <div class="user-btn" data-user-type="admin">
+                <i class="fas fa-user-shield"></i>
+                Mode Admin
+            </div>
+        </div>
+        
+        <!-- Login Section untuk Admin -->
+        <div class="login-section" id="admin-login">
+            <div class="info-box">
+                <div class="info-title">
+                    <i class="fas fa-lock"></i>
+                    Login Admin
+                </div>
+                <p>Masukkan kode akses admin untuk mengakses panel administrasi.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="adminCode">Kode Akses Admin</label>
+                <input type="password" id="adminCode" placeholder="Masukkan kode akses">
+            </div>
+            <button class="btn-submit" id="loginAdmin">
+                <i class="fas fa-sign-in-alt"></i>
+                Masuk sebagai Admin
+            </button>
+        </div>
+        
+        <!-- Login Section untuk Petani -->
+        <div class="login-section active" id="petani-login">
+            <div class="info-box">
+                <div class="info-title">
+                    <i class="fas fa-id-card"></i>
+                    Identifikasi Petani
+                </div>
+                <p>Pilih nama Anda dari daftar untuk mengisi usulan pupuk.</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="petaniSelect">Nama Petani</label>
+                <select id="petaniSelect" required>
+                    <option value="">-- Pilih Nama Anda --</option>
+                </select>
+            </div>
+            
+            <div class="admin-controls">
+                <button class="admin-btn" id="refreshData">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh Data
+                </button>
+                <button class="admin-btn" id="viewAllData">
+                    <i class="fas fa-eye"></i>
+                    Lihat Semua Data
+                </button>
+            </div>
+            
+            <button class="btn-submit" id="loginPetani">
+                <i class="fas fa-sign-in-alt"></i>
+                Lanjutkan sebagai Petani
+            </button>
+        </div>
+        
+        <!-- Panel Petani -->
+        <div id="petani-panel" style="display: none;">
+            <div class="user-info">
+                <div class="data-row">
+                    <div class="data-label">Nama:</div>
+                    <div class="data-value" id="currentPetaniName">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">NIK:</div>
+                    <div class="data-value" id="currentPetaniNIK">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Poktan:</div>
+                    <div class="data-value" id="currentPetaniPoktan">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Desa:</div>
+                    <div class="data-value" id="currentPetaniDesa">-</div>
+                </div>
+                <div class="data-row">
+                    <div class="data-label">Komoditas:</div>
+                    <div class="data-value" id="currentPetaniKomoditas">-</div>
+                </div>
+                <button class="admin-btn" id="logoutPetani">
+                    <i class="fas fa-sign-out-alt"></i>
+                    Ganti Petani
+                </button>
+            </div>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="input">Input Usulan</div>
+                <div class="tab" data-tab="history">Riwayat Usulan</div>
+            </div>
+            
+            <!-- Tab Input Usulan Petani -->
+            <div class="tab-content active" id="input-tab">
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-info-circle"></i>
+                        Petunjuk Penggunaan
+                    </div>
+                    <p>Isi usulan pupuk untuk setiap Musim Tanam (MT). Data akan langsung tersimpan dan terkirim ke admin.</p>
+                </div>
+                
+                <form id="usulanPupukForm">
+                    <!-- MT1, MT2, MT3 sections sama seperti sebelumnya -->
+                    <div class="mt-section">
+                        <div class="mt-title">
+                            <i class="fas fa-seedling"></i>
+                            MUSIM TANAM 1 (MT1)
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="mt1_luas">Luas Lahan MT1 (Ha)</label>
+                            <input type="number" id="mt1_luas" step="0.01" min="0" placeholder="Contoh: 2.5">
+                        </div>
+                        
+                        <div class="pupuk-grid">
+                            <div class="pupuk-item">
+                                <div class="pupuk-label">Urea (kg)</div>
+                                <input type="number" id="mt1_urea" min="0" placeholder="Jumlah urea">
+                            </div>
+                            
+                            <div class="pupuk-item">
+                                <div class="pupuk-label">NPK (kg)</div>
+                                <input type="number" id="mt1_npk" min="0" placeholder="Jumlah NPK">
+                            </div>
+                            
+                            <div class="pupuk-item">
+                                <div class="pupuk-label">Organik (kg)</div>
+                                <input type="number" id="mt1_organik" min="0" placeholder="Jumlah organik">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="mt1_keterangan">Keterangan Tambahan MT1</label>
+                            <textarea id="mt1_keterangan" rows="3" placeholder="Keterangan tambahan untuk MT1"></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- MT2 dan MT3 sections... -->
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-paper-plane"></i>
+                        Kirim Usulan Pupuk
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Tab Riwayat Usulan Petani -->
+            <div class="tab-content" id="history-tab">
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-history"></i>
+                        Riwayat Usulan Anda
+                    </div>
+                    <p>Berikut adalah riwayat usulan pupuk yang telah Anda kirimkan.</p>
+                </div>
+                
+                <div id="petaniHistory">
+                    <!-- Data akan diisi oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2023 Sistem Usulan Pupuk Bersubsidi</p>
+            <p>Untuk bantuan teknis, hubungi: 0812-3456-7890</p>
+        </div>
+    </div>
+
+    <script>
+        // ===============================
+        // KONFIGURASI SISTEM
+        // ===============================
+        
+        // Data master petani
+        let masterDataPetani = JSON.parse(localStorage.getItem('masterDataPetani')) || [];
+        
+        // Konfigurasi Admin
+        const ADMIN_PASSWORD = "admin123";
+
+        // Data usulan
+        let usulanData = JSON.parse(localStorage.getItem('usulanPupukData')) || [];
+        
+        // State aplikasi
+        let currentUser = null;
+        let isAdminMode = false;
+        let currentImportData = null;
+
+        // ===============================
+        // FUNGSI IMPORT DATA
+        // ===============================
+        
+        /**
+         * Membaca file Excel
+         */
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // Ambil sheet pertama
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                        
+                        resolve(jsonData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    reject(error);
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        /**
+         * Membaca file CSV
+         */
+        function readCSVFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const csvText = e.target.result;
+                        const lines = csvText.split('\n');
+                        const result = [];
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        
+                        for (let i = 1; i < lines.length; i++) {
+                            if (!lines[i].trim()) continue;
+                            
+                            const obj = {};
+                            const currentline = lines[i].split(',').map(c => c.trim());
+                            
+                            for (let j = 0; j < headers.length; j++) {
+                                obj[headers[j]] = currentline[j] || '';
+                            }
+                            
+                            result.push(obj);
+                        }
+                        
+                        resolve(result);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    reject(error);
+                };
+                
+                reader.readAsText(file);
+            });
+        }
+
+        /**
+         * Validasi data yang diimport
+         */
+        function validateImportedData(data) {
+            const requiredFields = ['nama', 'nik', 'poktan', 'desa', 'luasLahan'];
+            const errors = [];
+            
+            if (!data || data.length === 0) {
+                errors.push('Data kosong atau tidak valid');
+                return { isValid: false, errors };
+            }
+            
+            // Cek field yang required
+            data.forEach((item, index) => {
+                requiredFields.forEach(field => {
+                    if (!item[field] || item[field].toString().trim() === '') {
+                        errors.push(`Baris ${index + 2}: Field '${field}' harus diisi`);
+                    }
+                });
+                
+                // Validasi NIK (harus angka, 16 digit)
+                if (item.nik && !/^\d{16}$/.test(item.nik.toString().trim())) {
+                    errors.push(`Baris ${index + 2}: NIK harus 16 digit angka`);
+                }
+                
+                // Validasi luas lahan (harus angka)
+                if (item.luasLahan && isNaN(parseFloat(item.luasLahan))) {
+                    errors.push(`Baris ${index + 2}: Luas lahan harus angka`);
+                }
+            });
+            
+            return {
+                isValid: errors.length === 0,
+                errors: errors
+            };
+        }
+
+        /**
+         * Transform data yang diimport ke format standar
+         */
+        function transformImportedData(data) {
+            return data.map((item, index) => ({
+                id: item.id || index + 1,
+                nama: item.nama || item.nama_lengkap || item.Nama,
+                nik: item.nik || item.nomor_ktp || item.NIK,
+                poktan: item.poktan || item.kelompok_tani || item.Poktan,
+                desa: item.desa || item.Desa,
+                kecamatan: item.kecamatan || item.Kecamatan,
+                luasLahan: item.luasLahan || item.luas_lahan || item['Luas Lahan'],
+                alamat: item.alamat || item.alamat_lengkap || item.Alamat,
+                komoditas: item.komoditas || item.komoditas_utama || item.Komoditas,
+                noHp: item.noHp || item.nomor_telepon || item['No HP']
+            }));
+        }
+
+        /**
+         * Menampilkan preview data
+         */
+        function showPreview(data) {
+            const previewSection = document.getElementById('previewSection');
+            const previewTable = document.getElementById('previewTable');
+            const confirmImportBtn = document.getElementById('confirmImport');
+            
+            if (data.length === 0) {
+                previewTable.innerHTML = '<p>Tidak ada data untuk ditampilkan</p>';
+                confirmImportBtn.disabled = true;
+                return;
+            }
+            
+            // Ambil headers dari data pertama
+            const headers = Object.keys(data[0]);
+            
+            let tableHTML = `
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            ${headers.map(header => `<th>${header}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // Tampilkan maksimal 10 baris untuk preview
+            const previewRows = data.slice(0, 10);
+            previewRows.forEach(row => {
+                tableHTML += '<tr>';
+                headers.forEach(header => {
+                    tableHTML += `<td>${row[header] || ''}</td>`;
+                });
+                tableHTML += '</tr>';
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            if (data.length > 10) {
+                tableHTML += `<p>... dan ${data.length - 10} baris lainnya</p>`;
+            }
+            
+            previewTable.innerHTML = tableHTML;
+            previewSection.style.display = 'block';
+            confirmImportBtn.disabled = false;
+            
+            // Scroll ke preview section
+            previewSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Download template Excel/CSV
+         */
+        function downloadTemplate() {
+            const templateData = [
+                {
+                    'id': 1,
+                    'nama': 'Ahmad Susanto',
+                    'nik': '3501234567890001',
+                    'poktan': 'Tani Makmur',
+                    'desa': 'Sumberagung',
+                    'kecamatan': 'Jetis',
+                    'luasLahan': '2.5',
+                    'alamat': 'Ds. Sumberagung, Kec. Jetis',
+                    'komoditas': 'Padi',
+                    'noHp': '081234567890'
+                },
+                {
+                    'id': 2,
+                    'nama': 'Budi Santoso',
+                    'nik': '3501234567890002',
+                    'poktan': 'Tani Sejahtera',
+                    'desa': 'Mojorejo',
+                    'kecamatan': 'Bendo',
+                    'luasLahan': '1.8',
+                    'alamat': 'Ds. Mojorejo, Kec. Bendo',
+                    'komoditas': 'Jagung',
+                    'noHp': '081234567891'
+                }
+            ];
+            
+            // Buat worksheet
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            
+            // Buat workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Template Petani');
+            
+            // Download file
+            XLSX.writeFile(wb, 'template_data_petani.xlsx');
+        }
+
+        /**
+         * Proses import data
+         */
+        function processImport() {
+            const importStatus = document.getElementById('importStatus');
+            
+            if (!currentImportData || currentImportData.length === 0) {
+                showStatus('Tidak ada data untuk diimport', 'error');
+                return;
+            }
+            
+            // Validasi data
+            const validation = validateImportedData(currentImportData);
+            if (!validation.isValid) {
+                showStatus(`Validasi gagal: ${validation.errors.join(', ')}`, 'error');
+                return;
+            }
+            
+            // Transform data
+            const transformedData = transformImportedData(currentImportData);
+            
+            // Simpan ke localStorage
+            localStorage.setItem('masterDataPetani', JSON.stringify(transformedData));
+            masterDataPetani = transformedData;
+            
+            // Refresh dropdown
+            initPetaniDropdown();
+            
+            showStatus(`Berhasil mengimport ${transformedData.length} data petani`, 'success');
+            
+            // Reset preview
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('confirmImport').disabled = true;
+            currentImportData = null;
+            
+            // Clear file inputs
+            document.getElementById('excelFile').value = '';
+            document.getElementById('csvFile').value = '';
+        }
+
+        /**
+         * Tampilkan status import
+         */
+        function showStatus(message, type) {
+            const importStatus = document.getElementById('importStatus');
+            importStatus.textContent = message;
+            importStatus.className = `status-message status-${type}`;
+            importStatus.style.display = 'block';
+            
+            // Auto hide setelah 5 detik
+            setTimeout(() => {
+                importStatus.style.display = 'none';
+            }, 5000);
+        }
+
+        // ===============================
+        // INISIALISASI APLIKASI
+        // ===============================
+        
+        // Inisialisasi dropdown petani
+        function initPetaniDropdown() {
+            const petaniSelect = document.getElementById('petaniSelect');
+            petaniSelect.innerHTML = '<option value="">-- Pilih Nama Anda --</option>';
+            
+            masterDataPetani.forEach(petani => {
+                const option = document.createElement('option');
+                option.value = petani.id;
+                option.textContent = `${petani.nama} - ${petani.desa} (${petani.poktan})`;
+                petaniSelect.appendChild(option);
+            });
+        }
+
+        // ===============================
+        // EVENT LISTENERS
+        // ===============================
+        
+        // Download template
+        document.getElementById('downloadTemplate').addEventListener('click', downloadTemplate);
+
+        // Import Excel
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            readExcelFile(file)
+                .then(data => {
+                    currentImportData = data;
+                    showPreview(data);
+                })
+                .catch(error => {
+                    showStatus(`Error membaca file Excel: ${error.message}`, 'error');
+                });
+        });
+
+        // Import CSV
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            readCSVFile(file)
+                .then(data => {
+                    currentImportData = data;
+                    showPreview(data);
+                })
+                .catch(error => {
+                    showStatus(`Error membaca file CSV: ${error.message}`, 'error');
+                });
+        });
+
+        // Confirm import
+        document.getElementById('confirmImport').addEventListener('click', processImport);
+
+        // Cancel import
+        document.getElementById('cancelImport').addEventListener('click', function() {
+            document.getElementById('previewSection').style.display = 'none';
+            document.getElementById('excelFile').value = '';
+            document.getElementById('csvFile').value = '';
+            currentImportData = null;
+        });
+
+        // View all data
+        document.getElementById('viewAllData').addEventListener('click', function() {
+            if (masterDataPetani.length === 0) {
+                alert('Belum ada data petani. Silakan import data terlebih dahulu.');
+                return;
+            }
+            
+            let dataList = "DATA PETANI:\n\n";
+            masterDataPetani.forEach(petani => {
+                dataList += `Nama: ${petani.nama}\n`;
+                dataList += `NIK: ${petani.nik}\n`;
+                dataList += `Poktan: ${petani.poktan}\n`;
+                dataList += `Desa: ${petani.desa}\n`;
+                dataList += `Komoditas: ${petani.komoditas}\n`;
+                dataList += `Luas Lahan: ${petani.luasLahan} Ha\n`;
+                dataList += "------------------------\n";
+            });
+            alert(dataList);
+        });
+
+        // Event listeners lainnya (sama seperti sebelumnya)
+        document.querySelectorAll('.user-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.user-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                const userType = this.getAttribute('data-user-type');
+                document.getElementById('admin-login').classList.remove('active');
+                document.getElementById('petani-login').classList.remove('active');
+                
+                if (userType === 'admin') {
+                    document.getElementById('admin-login').classList.add('active');
+                } else {
+                    document.getElementById('petani-login').classList.add('active');
+                }
+            });
+        });
+
+        // Login Admin
+        document.getElementById('loginAdmin').addEventListener('click', function() {
+            const adminCode = document.getElementById('adminCode').value;
+            if (adminCode === ADMIN_PASSWORD) {
+                isAdminMode = true;
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('petani-panel').style.display = 'none';
+            } else {
+                alert('Kode akses admin salah!');
+            }
+        });
+
+        // Login Petani
+        document.getElementById('loginPetani').addEventListener('click', function() {
+            const selectedId = parseInt(document.getElementById('petaniSelect').value);
+            if (selectedId) {
+                const petani = masterDataPetani.find(p => p.id === selectedId);
+                if (petani) {
+                    currentUser = petani;
+                    isAdminMode = false;
+                    document.getElementById('petani-login').style.display = 'none';
+                    document.getElementById('petani-panel').style.display = 'block';
+                    document.getElementById('admin-panel').style.display = 'none';
+                    
+                    // Tampilkan info petani
+                    document.getElementById('currentPetaniName').textContent = petani.nama;
+                    document.getElementById('currentPetaniNIK').textContent = petani.nik;
+                    document.getElementById('currentPetaniPoktan').textContent = petani.poktan;
+                    document.getElementById('currentPetaniDesa').textContent = petani.desa;
+                    document.getElementById('currentPetaniKomoditas').textContent = petani.komoditas;
+                    
+                    // Set nilai default untuk luas lahan
+                    const luasLahanValue = parseFloat(petani.luasLahan);
+                    if (!isNaN(luasLahanValue)) {
+                        document.getElementById('mt1_luas').value = luasLahanValue;
+                        document.getElementById('mt2_luas').value = luasLahanValue;
+                        document.getElementById('mt3_luas').value = luasLahanValue;
+                    }
+                }
+            } else {
+                alert('Silakan pilih nama petani terlebih dahulu!');
+            }
+        });
+
+        // Refresh data
+        document.getElementById('refreshData').addEventListener('click', function() {
+            initPetaniDropdown();
+            alert('Data telah direfresh!');
+        });
+
+        // ===============================
+        // INISIALISASI SAAT LOAD
+        // ===============================
+        
+        // Inisialisasi dropdown petani
+        initPetaniDropdown();
+    </script>
+</body>
+</html>
